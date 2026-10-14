@@ -1,0 +1,28 @@
+﻿PVObject_=pvSite
+  Comment=Washington State;United States;North_America;
+  Version=8.0.11
+  Flags=$0006283F
+  NomF=Washington State_MN82.SIT
+  Site=Washington State
+  Country=United States
+  Region=North_America
+  Source=Meteonorm 8.2 (1991-2005), Sat=72%
+  SourceType=Meteonorm82DLL
+  Latitude=47.4280
+  Longitude=-120.2013
+  Altitude=0
+  TimeZone=-8.0
+  HLeg=True
+  UnitsDisp=kWh_m2_m
+  Albedo=0.20
+  DateBeg=01/01/80 00:00
+  DateEnd=31/12/80 23:00
+  GlobalH=31.0,57.9,103.1,151.5,189.7,201.4,219.7,179.7,128.6,78.8,37.7,27.4,1406.3,
+  DiffuseH=20.2,27.1,41.7,57.8,75.6,81.2,66.5,69.3,48.1,31.6,20.4,17.5,557.0,
+  TAmb=2.09,3.66,7.22,10.57,15.20,18.29,22.69,22.04,16.99,10.96,5.32,1.97,11.47,
+  WindVel=2.00,2.30,2.99,3.60,3.69,4.00,3.89,3.50,3.10,2.60,2.20,2.00,2.99,
+  Linke=2.733,2.715,2.760,2.921,3.013,2.955,2.944,2.911,2.944,2.854,2.747,2.713,2.852,
+  RelHum=0.853,0.764,0.687,0.624,0.562,0.545,0.489,0.528,0.617,0.735,0.807,0.829,0.670,
+  Extraterr=91.9,128.3,207.2,271.3,334.0,347.2,347.4,303.1,228.8,165.8,103.0,79.6,2607.5,
+  YrToYrVar=5.565
+End of PVObject pvSite

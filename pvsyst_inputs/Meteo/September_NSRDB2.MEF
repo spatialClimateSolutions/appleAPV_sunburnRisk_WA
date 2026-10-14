@@ -1,0 +1,92 @@
+﻿PVObject_=pvMeteoFormat
+  Comment=September Conversion
+  Version=8.0.11
+  Flags=$00C3
+  DateMode=ReadOnFile
+  DateFmtType=YY_MM_DD_hh_mm
+  FileType=SingleFile
+  Separ=$002C
+  NLigDeb=3
+  MeasureStep=60
+  HourShiftF=1
+  TypeInterv=1
+  UsesDST=False
+  DateHEte=01/01/25
+  DateHHiver=01/01/25
+  RefTimeS=LegalTime
+  TypeRE=1
+  AlbedoSolMF=0.2
+  AlbedoMonMF=0.20,0.20,0.20,0.20,0.20,0.20,0.20,0.20,0.20,0.20,0.20,0.20,
+  IsAlbedoMon=False
+  TypeJourFich=1
+  TypeMoisFich=1
+  NCarFMask=8
+  NoFieldDate=1,2,3,4,5,
+  VarASCIIList, list of=9 tVarASCII
+    VarASCII=1
+      VarIdent=DiffHor
+      VarType=Irrad
+      NoField=16
+      FieldMult=1.00000
+      UnitId=W_m2
+    End of TVarASCII
+    VarASCII=2
+      VarIdent=GlobHor
+      VarType=Irrad
+      NoField=19
+      FieldMult=1.00000
+      UnitId=W_m2
+    End of TVarASCII
+    VarASCII=3
+      VarIdent=T_Amb
+      VarType=Temper
+      NoField=6
+      FieldMult=1.00000
+      UnitId=DegC
+    End of TVarASCII
+    VarASCII=4
+      VarIdent=WindVel
+      VarType=WindVel
+      NoField=28
+      FieldMult=1.00000
+      UnitId=m_s
+    End of TVarASCII
+    VarASCII=5
+      VarIdent=PrecWat
+      VarType=Length
+      NoField=26
+      FieldMult=1.00000
+      UnitId=cm
+    End of TVarASCII
+    VarASCII=6
+      VarIdent=RelHum
+      VarType=Factor
+      NoField=21
+      FieldMult=1.00000
+      UnitId=PCent
+    End of TVarASCII
+    VarASCII=7
+      VarIdent=Albedo
+      VarType=Factor
+      NoField=24
+      FieldMult=1.00000
+      UnitId=Ratio
+    End of TVarASCII
+    VarASCII=8
+      VarIdent=AoD
+      VarType=Factor
+      NoField=8
+      FieldMult=1.00000
+      UnitId=Ratio
+    End of TVarASCII
+    VarASCII=9
+      VarIdent=T_DewPt
+      VarType=Temper
+      NoField=15
+      FieldMult=1.00000
+      UnitId=DegC
+    End of TVarASCII
+  End of List VarASCIIList
+  NChampsAff=46
+  LargChamps=8,12,8,8,8,21,19,21,10,16,19,19,19,16,21,10,10,10,18,20,18,19,21,19,15,19,15,20,13,19,13,13,13,13,13,14,14,14,12,14,15,17,12,19,21,8,
+End of PVObject pvMeteoFormat

@@ -1,0 +1,77 @@
+﻿PVObject_=pvMeteoFormat
+  Comment=PVSyst_DATA
+  Version=8.0.11
+  Flags=$00C3
+  DateMode=ReadOnFile
+  DateFmtType=YY_MM_DD_hh_mm
+  FileType=SingleFile
+  Separ=$002C
+  NLigDeb=3
+  MeasureStep=60
+  TypeInterv=1
+  UsesDST=False
+  DateHEte=01/01/25
+  DateHHiver=01/01/25
+  RefTimeS=LegalTime
+  TypeRE=1
+  AlbedoSolMF=0.2
+  AlbedoMonMF=0.20,0.20,0.20,0.20,0.20,0.20,0.20,0.20,0.20,0.20,0.20,0.20,
+  IsAlbedoMon=False
+  TypeJourFich=1
+  TypeMoisFich=1
+  NCarFMask=18
+  NoFieldDate=1,2,3,4,5,
+  VarASCIIList, list of=7 tVarASCII
+    VarASCII=1
+      VarIdent=GlobHor
+      VarType=Irrad
+      NoField=6
+      FieldMult=1.00000
+      UnitId=W_m2
+    End of TVarASCII
+    VarASCII=2
+      VarIdent=DiffHor
+      VarType=Irrad
+      NoField=7
+      FieldMult=1.00000
+      UnitId=W_m2
+    End of TVarASCII
+    VarASCII=3
+      VarIdent=WindVel
+      VarType=WindVel
+      NoField=9
+      FieldMult=1.00000
+      UnitId=m_s
+    End of TVarASCII
+    VarASCII=4
+      VarIdent=T_Amb
+      VarType=Temper
+      NoField=10
+      FieldMult=1.00000
+      UnitId=DegC
+    End of TVarASCII
+    VarASCII=5
+      VarIdent=RelHum
+      VarType=Factor
+      NoField=13
+      FieldMult=1.00000
+      UnitId=PCent
+    End of TVarASCII
+    VarASCII=6
+      VarIdent=PrecWat
+      VarType=Length
+      NoField=12
+      FieldMult=1.00000
+      UnitId=cm
+    End of TVarASCII
+    VarASCII=7
+      VarIdent=Albedo
+      VarType=Factor
+      NoField=16
+      FieldMult=1.00000
+      UnitId=Ratio
+    End of TVarASCII
+  End of List VarASCIIList
+  NChampsAff=46
+  LargChamps=8,12,8,8,8,9,10,10,20,20,19,20,19,20,10,15,11,8,18,15,8,8,21,17,15,13,15,13,13,19,13,13,13,13,13,14,14,14,12,14,15,17,12,19,21,8,
+End of PVObject pvMeteoFormat

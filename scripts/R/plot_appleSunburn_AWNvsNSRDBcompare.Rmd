@@ -1,0 +1,342 @@
+---
+title: "Untitled"
+author: "Grace wu"
+date: "2025-07-12"
+output: html_document
+---
+
+# Load libraries
+```{r}
+library(tidyverse)
+library(stringr)
+library(lubridate)
+library(ggplot2)
+library(sf)
+library(tigris)     # For US counties
+library(dplyr)
+library(ggrepel)    # For non-overlapping county labels
+library(patchwork)
+library(cowplot)
+library(ggplotify)
+library(wesanderson)
+```
+
+
+## import apple sunburn results
+```{r}
+# Set APPLE_APV_DATA_ROOT to the supplementary-data directory when data are
+# stored outside this repository. Otherwise, use the repository root.
+working_root <- normalizePath(getwd(), mustWork = FALSE)
+repo_root <- if (basename(working_root) == "R" && basename(dirname(working_root)) == "scripts") {
+  normalizePath(file.path(working_root, "../.."), mustWork = FALSE)
+} else {
+  working_root
+}
+base_folder <- Sys.getenv("APPLE_APV_DATA_ROOT", unset = repo_root)
+base_folder <- normalizePath(base_folder, mustWork = FALSE)
+
+saveToFolder <- file.path(base_folder, "outputs", "sunburnDaysFigures")
+
+data_scen <- "AWN" ## based on locations
+
+## IMPORT LOCATION DATA
+if(data_scen == "NSRDB"){
+  ## import old results to get the lat/longs of the 10 NSRDB locations
+  results_latLong_df <- read_csv(file.path(base_folder, "sunburn_results", "sunburn_risk_hours.csv")) %>% select(station, lat, long) %>%
+    unique()  
+}
+if(data_scen == "AWN"){
+  results_latLong_df <- read_csv(file.path(base_folder, "site_locations", "Loc56.csv"), show_col_types = FALSE) %>%
+  rename_with(tolower) %>%
+    mutate(station = as.numeric(str_sub(filename, -10, -5))) %>%
+    select(fid, station, lat, long, "exclude?")
+}
+
+
+results_NSRDB_df <- read_csv(file.path(base_folder, "sunburn_results", "sunburn_hours_day_56_NSRDB.csv")) %>% # sunburn_hours_day_56_NSRDB.csv OR sunburn_hours_day_10_NSRDB_flatapple.csv OR sunburn_hours_day_10_NSRDB_trackingapple.csv
+  separate(sensitivity_category, into = c("control_variant", "windspeed"), sep = "_", fill = "right") %>%
+  mutate(windspeed = case_when(control_variant == "Baseline" | control_variant == "Control" ~ "0",
+                               .default = windspeed), 
+         control_variant = case_when(control_variant == "V1" ~ "Agrivoltaic designs",
+                             control_variant == "Baseline" ~ "Baseline",
+                             control_variant == "C" ~ "Unshaded control",
+                             control_variant == "Control" ~ "Unshaded control",
+                             .default = control_variant),
+      variants = case_when(variants == "Fixed - ThickHats" ~ "EW Dual-Tilt - High Density",
+                             variants == "Fixed - ThinHats" ~ "EW Dual-Tilt - Medium Density",
+                           variants == "Tracking - HighDensity" ~ "Tracking - High Density",
+                           variants == "Tracking - Low Density" ~ "Tracking - Medium Density",
+                           variants == "Tracking - LowestShade" ~ "Tracking - Low Density",
+                             .default = variants),
+      data_scenario = "NSRDB") %>%
+  filter(control_variant != "Baseline")
+  
+results_AWN_df <- read_csv(file.path(base_folder, "sunburn_results", "sunburn_hours_day_56_AWN.csv")) %>% # sunburn_hours_day_56_AWN.csv
+  separate(sensitivity_category, into = c("control_variant", "windspeed"), sep = "_", fill = "right") %>%
+  mutate(windspeed = case_when(control_variant == "Baseline" | control_variant == "Control" ~ "0",
+                               .default = windspeed), 
+         control_variant = case_when(control_variant == "V1" ~ "Agrivoltaic designs",
+                             control_variant == "Baseline" ~ "Baseline",
+                             control_variant == "C" ~ "Unshaded control",
+                             control_variant == "Control" ~ "Unshaded control",
+                             .default = control_variant),
+      variants = case_when(variants == "Fixed - ThickHats" ~ "EW Dual-Tilt - High Density",
+                             variants == "Fixed - ThinHats" ~ "EW Dual-Tilt - Medium Density",
+                           variants == "Tracking - HighDensity" ~ "Tracking - High Density",
+                           variants == "Tracking - LowDensity" ~ "Tracking - Medium Density",
+                           variants == "Tracking - LowestShade" ~ "Tracking - Low Density",
+                             .default = variants),
+      data_scenario = "AgWeatherNet") %>%
+  filter(control_variant != "Baseline")
+  
+## Combine AWN and NSRDB data
+results_df <- rbind(results_NSRDB_df, results_AWN_df)
+
+## save to csv:
+#write_csv(results_df, "sunburn_results_df.csv")
+```
+
+
+```{r}
+# Step 2: Create full grid of all combinations
+full_grid <- expand_grid(
+  station = unique(results_df$station),
+  Year = unique(results_df$Year),
+  Month = 5:10,  # assuming May–Sept as valid months
+  variants = unique(results_df$variants),
+  control_variant = unique(results_df$control_variant),
+  windspeed = unique(results_df$windspeed),
+  data_scenario = unique(results_df$data_scenario)
+)
+
+# Step 3: Join and fill missing rows
+results_df_complete <- full_grid %>%
+  left_join(results_df, by = c("station", "Year", "Month", "variants", "control_variant", "windspeed", "data_scenario")) %>%
+  mutate(
+    number_days = replace_na(number_days, 0),
+    number_hours = replace_na(number_hours, 0)
+  )
+
+
+```
+
+```{r}
+
+## Create df with annual average sunburn days
+
+# Step 1: Summarize results_df_complete to annual total sunburn days
+total_annual_days <- results_df_complete %>%
+  group_by(station, Year, variants, control_variant, windspeed, data_scenario) %>%
+  summarize(
+    total_days = sum(number_days),
+    .groups = "drop"
+  )
+
+# Step 2: Average over years to get annual average sunburn days
+mean_annual_by_group <- total_annual_days %>%
+  group_by(station, variants, control_variant, windspeed, data_scenario) %>%
+  summarize(
+    avg_annual_sunburn_days = mean(total_days),
+    .groups = "drop"
+  )
+
+## get only agrivoltaic designs
+mean_annual_by_group_APV <- mean_annual_by_group %>% 
+  filter(control_variant == "Agrivoltaic designs")
+
+## get only one set of controls
+mean_annual_by_group_control <-mean_annual_by_group %>% 
+  filter(control_variant == "Unshaded control" & variants == "EW Dual-Tilt - High Density") %>%
+  mutate(variants = "Unshaded control")
+
+## combine control and apv designs
+sunburnDays_byStation_combined <- rbind(mean_annual_by_group_APV,mean_annual_by_group_control)
+
+
+
+## CALCULATE % REDUCTION IN SUNBURN DAYS
+
+# Step 1: Create a reference table for Control at windspeed == 0
+total_annual_days_control_ref <- total_annual_days %>%
+  #st_drop_geometry() %>%
+  filter(control_variant == "Unshaded control" & variants == "EW Dual-Tilt - High Density") %>%
+  select(-variants, control_days = total_days)
+
+# Step 2: Join control values to full dataset
+total_annual_days_with_ref <- total_annual_days %>%
+  filter(control_variant != "Unshaded control") %>%  # exclude control itself from results
+  left_join(total_annual_days_control_ref, by = c("station", "Year", "windspeed", "data_scenario"))
+
+# Step 3: Calculate percent reduction
+reduction_df <- total_annual_days_with_ref %>%
+  mutate(perc_reduction = 100 * (control_days - total_days) / control_days) %>%
+  select(station, Year, windspeed, variants, perc_reduction, data_scenario) %>%
+  group_by(station, windspeed, variants, data_scenario) %>%
+  summarize(avg_perc_reduction = mean(perc_reduction, na.rm = TRUE), .groups = "drop")
+
+
+## Drop the 7 locations that aren't really orchard locations:
+stations_drop <- results_latLong_df %>%
+  filter(`exclude?` == "yes") %>%
+  pull(station)
+
+sunburnDays_byStation_combined_dropped <- sunburnDays_byStation_combined %>%
+  filter(!(station %in% stations_drop))
+```
+
+## make scatterplot of AWN Vs. NSRDB comparison
+```{r}
+## pivot wider so that AWN and NSRDB are in their own columns
+sunburnDays_byStation_combined_dropped_wide <- sunburnDays_byStation_combined_dropped %>%
+  pivot_wider(
+    names_from = data_scenario,
+    values_from = avg_annual_sunburn_days
+  )
+
+unique(sunburnDays_byStation_combined_dropped_wide$variants)
+
+p_scatter <- sunburnDays_byStation_combined_dropped_wide %>%
+  filter(windspeed %in% c("WS10", "WS20", "WS30")) %>% 
+  ggplot(aes(x = AgWeatherNet, y = NSRDB, color = windspeed)) +
+  geom_point(size = 2, alpha = 0.7) +
+  scale_color_brewer(palette = "BuGn") + 
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray50") +  # 1:1 reference line
+  theme_minimal() +
+  labs(
+    x = "AgWeatherNet - annual average sunburn days",
+    y = "NSRDB - annual average sunburn days",
+    title = "Annual average sunburn days across 49 sites"
+  ) + 
+  #xlim(0,30) + ylim(0, 30) +
+  facet_wrap(~variants, scales = "free") + 
+  theme(legend.position = "bottom", 
+        legend.title = element_blank())
+
+ggsave(file.path(saveToFolder, "apple_sunburnDays_scatter_flatApples_49NSRDBvAWN.pdf"), p_scatter, width = 8, height = 5, units = "in")
+```
+
+## Make boxplot of sunburn days - annual average
+windspeed on x axis, with AWN and NSRDB groups (colors), variants (including control) in facets
+
+```{r}
+p_box <- sunburnDays_byStation_combined_dropped %>%
+  ggplot(aes(x = factor(windspeed), y = avg_annual_sunburn_days, fill = data_scenario)) +
+    geom_boxplot(outlier.size = 0.3, alpha = 0.6) +
+  scale_fill_manual(values = wes_palette(n = length(unique(sunburnDays_byStation_combined_dropped$data_scenario)), name = "Darjeeling2")) +
+  theme_minimal() +
+  labs(
+    x = "Percent wind speed reduction",
+    y = "Annual average sunburn days"
+    #title = "Annual average sunburn days across 49 sites"
+  ) + 
+  #xlim(0,30) + ylim(0, 30) +
+  facet_wrap(~variants, scales = "free") +
+  theme(legend.position = "bottom", 
+        legend.title = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave(file.path(saveToFolder, "apple_sunburnDays_boxplot_flatApples_49NSRDBvAWN.pdf"), p_box, width = 8, height = 5, units = "in")
+```
+
+## Make boxplot of % difference in annual average sunburn days between AWN and NSRDB
+```{r}
+p_box_diff <- sunburnDays_byStation_combined_dropped_wide %>%
+  mutate(diff = 100* (NSRDB - AgWeatherNet)/NSRDB) %>%
+  filter(variants != "EW Dual-Tilt - High Density") %>%
+ggplot(aes(x = factor(windspeed), y = diff)) +
+    geom_boxplot(outlier.size = 0.3, alpha = 0.6) +
+  theme_minimal() +
+  labs(
+    x = "Percent wind speed reduction",
+    y = "Percent difference in annual average \nsunburn days (NSRDB vs. AWN) (%)"
+    #title = "Annual average sunburn days across 49 sites"
+  ) + 
+  #xlim(0,30) + ylim(0, 30) +
+  facet_wrap(~variants, scales = "free") +
+  theme(legend.position = "bottom", 
+        legend.title = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave(file.path(saveToFolder, "apple_sunburnDays_boxplot_flatApples_49NSRDBvAWN_percentDiff.pdf"), p_box_diff, width = 8, height = 5, units = "in")
+```
+
+## Make boxplot of sunburn days - monthly averages
+months on x axis, with AWN and NSRDB groups (colors), variants (including control) in facets
+```{r}
+# Step 1: Summarize results_df_complete to monthly average sunburn days
+avg_monthly_days <- results_df_complete %>%
+  group_by(station, Month, variants, control_variant, windspeed, data_scenario) %>%
+  summarize(
+    avg_number_days = mean(number_days),
+    .groups = "drop"
+  )
+
+## get only agrivoltaic designs
+avg_monthly_days_APV <- avg_monthly_days %>% 
+  filter(control_variant == "Agrivoltaic designs")
+
+## get only one set of controls
+avg_monthly_days_control <- avg_monthly_days %>% 
+  filter(control_variant == "Unshaded control" & variants == "EW Dual-Tilt - High Density") %>%
+  mutate(variants = "Unshaded control")
+
+## combine control and apv designs
+avg_monthly_days_combined <- rbind(avg_monthly_days_APV,avg_monthly_days_control)
+
+
+
+p_box_monthly <- avg_monthly_days_combined %>%
+  filter(windspeed == "0") %>%
+  ggplot(aes(x = data_scenario, y = avg_number_days)) +
+    geom_boxplot(outlier.size = 0.3, alpha = 0.6) +
+  theme_minimal() +
+  labs(
+    x = "Percent wind speed reduction",
+    y = "Annual average sunburn days")+
+  facet_grid(rows = vars(variants), cols = vars(Month), scales = "free") +
+  theme(legend.position = "bottom", 
+        legend.title = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave(file.path(saveToFolder, "apple_sunburnDays_boxplot_flatApples_49NSRDBvAWN.pdf"), p_box, width = 8, height = 5, units = "in")
+
+```
+
+```{r}
+## pivot wider so that AWN and NSRDB are in their own columns
+reduction_df_wide <- reduction_df %>%
+  pivot_wider(
+    names_from = data_scenario,
+    values_from = avg_perc_reduction
+  )
+
+## Drop the 7 locations that aren't really orchard locations:
+reduction_df_wide_dropped <- reduction_df_wide %>%
+  filter(!(station %in% stations_drop))
+
+## Drop the 7 locations that aren't really orchard locations:
+reduction_df_dropped <- reduction_df %>%
+  filter(!(station %in% stations_drop))
+
+## plot 
+p_box_percReduction <- 
+  ggplot(reduction_df_dropped, aes(x = factor(windspeed), y = avg_perc_reduction, fill = data_scenario)) +
+    geom_boxplot(outlier.size = 0.3, alpha = 0.6) +
+  scale_fill_manual(values = wes_palette(n = length(unique(sunburnDays_byStation_combined_dropped$data_scenario)), name = "Darjeeling2")) +
+  theme_minimal() +
+  labs(
+    x = "Percent wind speed reduction",
+    y = "Percent reduction in annual sunburn days \ncompared to unshaded control (%)"
+    #title = "Annual average sunburn days across 49 sites"
+  ) + 
+  #xlim(0,30) + ylim(0, 30) +
+  facet_wrap(~variants, scales = "free") +
+  theme(legend.position = "bottom", 
+        legend.title = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave(file.path(saveToFolder, "apple_sunburnDays_boxplot_flatApples_49NSRDBvAWN_percentReduction.pdf"), p_box_percReduction, width = 8, height = 5, units = "in")
+
+```
+
+
