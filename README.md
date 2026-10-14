@@ -23,22 +23,22 @@ pvsyst_inputs/
 └── PVSyst_asset_manifest.tsv
 ```
 
-Large weather, site-year, and sunburn-result datasets are not included in this repository. They will be included in a separate data repository as supplementary data accompanying the published paper.
+Large weather, site-year, and sunburn-result datasets are not included in this repository. They are included in a separate data repository as supplementary data accompanying the published paper.
 
 ## Workflow
 
-1. Prepare `site_locations/Loc56.csv`.
-2. Download hourly NSRDB data with `scripts/python/NSRDB_Download.py`.
-3. Run PVSyst simulations with `scripts/python/PVSyst_Variant_Download.py`.
-4. Analyze irradiance and capacity factor with `scripts/R/IrradiancePlots.R`.
-5. Generate maps and energy/economic summaries with `scripts/R/GraphingMaps.R`.
-6. Compare AWN and NSRDB sunburn-risk results with `scripts/R/plot_appleSunburn_AWNvsNSRDBcompare.Rmd`.
+1. Prepare `site_locations/Loc56.csv`
+2. Download hourly NSRDB data with `scripts/python/NSRDB_Download.py`
+3. Run PVSyst simulations with `scripts/python/PVSyst_Variant_Download.py`
+4. Analyze irradiance and capacity factor with `scripts/R/IrradiancePlots.R`
+5. Generate maps and energy/economic summaries with `scripts/R/GraphingMaps.R`
+6. Compare AWN and NSRDB sunburn-risk results with `scripts/R/plot_appleSunburn_AWNvsNSRDBcompare.Rmd`
 
 ## Configuration
 
-The publication-ready copies use the `APPLE_APV_DATA_ROOT` environment variable. If it is not set, scripts use the repository root as the data root.
+The scripts use the `APPLE_APV_DATA_ROOT` environment variable. If it is not set, scripts use the repository root as the data root.
 
-The expected data layout is:
+The data layout is:
 
 ```text
 data_root/
@@ -73,8 +73,6 @@ export NREL_AFFILIATION="Your Institution"
 python scripts/python/NSRDB_Download.py
 ```
 
-The previously embedded API key and personal request metadata were removed from the public copy. Any previously exposed key should be rotated or revoked.
-
 ## Script descriptions
 
 ### `NSRDB_Download.py`
@@ -101,18 +99,17 @@ Reads AWN and NSRDB sunburn-risk tables, standardizes scenario and variant label
 
 ## Supplementary data
 
-The separate supplementary-data repository should include:
+The separate supplementary-data repository includes:
 
-- `site_locations/Loc56.csv`;
-- downloaded NSRDB weather files for 2013–2022;
-- `failed_sites.csv`;
-- the PVSyst inputs listed in `pvsyst_inputs/PVSyst_asset_manifest.tsv`;
-- processed PVSyst site-year files;
-- `sunburn_hours_day_56_AWN.csv`;
-- `sunburn_hours_day_56_NSRDB.csv`; and
-- documentation of variables, exclusions, software versions, and processing dates.
+- `site_locations/Loc56.csv`
+- the PVSyst inputs listed in `pvsyst_inputs/PVSyst_asset_manifest.tsv`
+- processed PVSyst site-year files
+- `sunburn_hours_day_56_AWN.csv`
+- `sunburn_hours_day_56_NSRDB.csv`
 
-These files will be included as supplementary data accompanying the published paper. The final supplementary-data repository URL and publication citation will be added when available.
+Downloaded NSRDB weather files for 2013–2022 are not made available as part of the journal publication given the size of the data and the fact they are freely and publicly available for download using the provided script.
+
+These files are included as supplementary data accompanying the published paper
 
 ## Reproducibility notes
 
@@ -122,4 +119,4 @@ The PVSyst assets preserve their original contents. Some contain historical abso
 
 ## Citation
 
-Please cite the associated journal publication when using this code or the accompanying data. The formal citation and DOI will be added when available.
+The formal citation and DOI will be added when available.
