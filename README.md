@@ -13,6 +13,10 @@ scripts/
 │   └── PVSyst_Variant_Download.py
 └── R/
     ├── GraphingMaps.R
+    ├── FST/
+    │   ├── AWN_QA_QC.R
+    │   ├── FST_56_AWN_stations.R
+    │   └── FST_56_NSRDB_stations.R
     ├── IrradiancePlots.R
     └── plot_appleSunburn_AWNvsNSRDBcompare.Rmd
 pvsyst_inputs/
@@ -43,6 +47,11 @@ The data layout is:
 ```text
 data_root/
 ├── site_locations/Loc56.csv
+├── awn_raw/
+├── awn_qaqc/
+│   ├── Combined_data/Complete_data/
+│   ├── Combined_data/Cleaned_data/
+│   └── diagnostics/
 ├── weather/NSRDB_Cleaned_Data_56_Sites/<FID>/solar_<year>_FID<FID>.csv
 ├── pvsyst_inputs/
 │   ├── Models/
@@ -50,6 +59,10 @@ data_root/
 │   ├── Projects/
 │   └── Sites/
 ├── pvsyst_results/
+├── pvsyst_results_awn/
+├── fst_results/
+│   ├── AWN/
+│   └── NSRDB/
 └── sunburn_results/
 ```
 
@@ -88,6 +101,16 @@ PVSyst 8.0.11 and a compatible PVSyst CLI installation are required. PVSyst is p
 ### `IrradiancePlots.R`
 
 Joins processed PVSyst results with weather files, calculates flux/GHI, flux/control, and capacity-factor metrics, writes combined CSV files, produces hourly boxplots, and reports missing files.
+
+### Fruit-surface-temperature and sunburn-risk workflow
+
+The scripts in `scripts/R/FST/` are the collaborator’s archived FST workflow. `AWN_QA_QC.R` reads raw AgWeatherNet (AWN) station files, converts Fahrenheit/mph measurements to degrees Celsius and m/s, screens incomplete or implausible station-years, writes cleaned AWN files, and produces weather diagnostics. `FST_56_AWN_stations.R` and `FST_56_NSRDB_stations.R` then join cleaned AWN or NSRDB weather with the corresponding PVSyst Control and Variant 1 irradiance outputs.
+
+Both FST scripts use `agclimtools::fruit_surface_temp()` and evaluate a 43°C fruit-surface-temperature threshold. They calculate a baseline plus Control and Variant 1 scenarios under wind-speed multipliers of 0.90, 0.85, 0.80, 0.75, 0.70, and 0.65 (the script labels these as WS10, WS15, WS20, WS25, WS30, and WS35). Monthly results report threshold-exceedance hours and days. The scripts also write diagnostic comparisons of weather-source radiation against PVSyst radiation.
+
+The publication sunburn-risk tables `sunburn_hours_day_56_AWN.csv` and `sunburn_hours_day_56_NSRDB.csv` are downstream products of these AWN- and NSRDB-based FST simulations, respectively. They are supplied as supplementary results; the raw weather, cleaned weather, PVSyst outputs, and intermediate FST tables are kept outside this code repository because of size and provenance requirements. The exact output filenames produced by the archived scripts are retained in the scripts; publication tables may additionally reflect the project’s final collation and naming step.
+
+The archived QA/QC script contains exploratory sections and unresolved references inherited from the collaborator’s research workflow. Review those sections before running the complete script; the FST scripts are the reproducibility entry points for the sunburn-risk calculations.
 
 ### `GraphingMaps.R`
 
