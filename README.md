@@ -108,9 +108,7 @@ The scripts in `scripts/R/FST/` are the collaborator’s archived FST workflow. 
 
 Both FST scripts use `agclimtools::fruit_surface_temp()` and evaluate a 43°C fruit-surface-temperature threshold. They calculate a baseline plus Control and Variant 1 scenarios under wind-speed multipliers of 0.90, 0.85, 0.80, 0.75, 0.70, and 0.65 (the script labels these as WS10, WS15, WS20, WS25, WS30, and WS35). Monthly results report threshold-exceedance hours and days. The scripts also write diagnostic comparisons of weather-source radiation against PVSyst radiation.
 
-The publication sunburn-risk tables `sunburn_hours_day_56_AWN.csv` and `sunburn_hours_day_56_NSRDB.csv` are downstream products of these AWN- and NSRDB-based FST simulations, respectively. They are supplied as supplementary results; the raw weather, cleaned weather, PVSyst outputs, and intermediate FST tables are kept outside this code repository because of size and provenance requirements. The exact output filenames produced by the archived scripts are retained in the scripts; publication tables may additionally reflect the project’s final collation and naming step.
-
-The archived QA/QC script contains exploratory sections and unresolved references inherited from the collaborator’s research workflow. Review those sections before running the complete script; the FST scripts are the reproducibility entry points for the sunburn-risk calculations.
+The publication sunburn-risk tables `sunburn_hours_day_56_AWN.csv` and `sunburn_hours_day_56_NSRDB.csv` are downstream products of these AWN- and NSRDB-based FST simulations, respectively. They are supplied as supplementary results; the raw weather, cleaned weather, PVSyst outputs, and intermediate FST tables are kept outside this code repository because of size.
 
 ### `GraphingMaps.R`
 
@@ -125,14 +123,13 @@ Reads AWN and NSRDB sunburn-risk tables, standardizes scenario and variant label
 The separate supplementary-data repository includes:
 
 - `site_locations/Loc56.csv`
-- the PVSyst inputs listed in `pvsyst_inputs/PVSyst_asset_manifest.tsv`
 - processed PVSyst site-year files
 - `sunburn_hours_day_56_AWN.csv`
 - `sunburn_hours_day_56_NSRDB.csv`
 
 Downloaded NSRDB weather files for 2013–2022 are not made available as part of the journal publication given the size of the data and the fact they are freely and publicly available for download using the provided script.
 
-These files are included as supplementary data accompanying the published paper
+These files are included as supplementary data on Zenodo with link provided in the accompanying paper.
 
 ## Reproducibility notes
 
